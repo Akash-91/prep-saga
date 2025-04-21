@@ -1,0 +1,19 @@
+# Java
+target/
+*.class
+
+# Logs
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Environment & secrets
+*.env
+application.properties
+application.yml
+README.md

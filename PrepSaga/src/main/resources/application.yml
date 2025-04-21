@@ -1,0 +1,56 @@
+server:
+  port: 8082
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prepsaga
+    username: prep_user
+    password: Anshu@2230
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          azure:
+            client-id: 034e5fa6-51e3-408e-b573-d51b5559a9c8  # Azure AD Application's Client ID
+            client-secret: <your-client-secret>  # Azure AD Application's Secret
+            scope:
+              - openid
+              - profile
+              - User.Read
+            redirect-uri: http://localhost:8082/login/oauth2/code/azure  # Adjust for your environment
+            authorization-grant-type: authorization_code
+            client-authentication-method: post
+        provider:
+          azure:
+            authorization-uri: https://login.microsoftonline.com/c3b429b1-8e2e-4792-92e5-fa684520cc1c/oauth2/v2.0/authorize
+            token-uri: https://login.microsoftonline.com/c3b429b1-8e2e-4792-92e5-fa684520cc1c/oauth2/v2.0/token
+            user-info-uri: https://graph.microsoft.com/v1.0/me
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: akash.akki07@gmail.com
+    password: sucinrqbxynwulja
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+
+app:
+  jwt:
+    secret: oV4s1z2CptaDoKJ1V+M03Pf+MhP8/uJxUUkN2r5UhIapRTnAqRSKbfThv7MIftDIBXBboMRKaoRCE5ekzSOaAQ==

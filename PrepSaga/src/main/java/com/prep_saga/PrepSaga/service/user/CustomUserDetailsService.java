@@ -1,4 +1,4 @@
-package com.prep_saga.PrepSaga.service;
+package com.prep_saga.PrepSaga.service.user;
 
 import com.prep_saga.PrepSaga.entity.User;
 import com.prep_saga.PrepSaga.repository.UserRepository;

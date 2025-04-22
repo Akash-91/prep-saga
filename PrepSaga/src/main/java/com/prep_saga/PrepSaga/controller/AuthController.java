@@ -2,6 +2,7 @@ package com.prep_saga.PrepSaga.controller;
 
 
 import com.prep_saga.PrepSaga.entity.User;
+import com.prep_saga.PrepSaga.model.RegisterRequest;
 import com.prep_saga.PrepSaga.security.JwtTokenProvider;
 import com.prep_saga.PrepSaga.service.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        return authService.register(user);
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
+        return authService.register(registerRequest);
     }
 
     @PutMapping("/add-admin")

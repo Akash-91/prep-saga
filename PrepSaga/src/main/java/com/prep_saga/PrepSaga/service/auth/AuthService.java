@@ -2,13 +2,16 @@ package com.prep_saga.PrepSaga.service.auth;
 
 
 import com.prep_saga.PrepSaga.entity.User;
-import com.prep_saga.PrepSaga.entity.UserStatus;
+
 import com.prep_saga.PrepSaga.entity.VerificationToken;
 import com.prep_saga.PrepSaga.model.LoginResponse;
+import com.prep_saga.PrepSaga.model.RegisterRequest;
+import com.prep_saga.PrepSaga.model.Role;
+import com.prep_saga.PrepSaga.model.UserStatus;
 import com.prep_saga.PrepSaga.repository.TokenRepository;
 import com.prep_saga.PrepSaga.repository.UserRepository;
 import com.prep_saga.PrepSaga.security.JwtTokenProvider;
-import com.prep_saga.PrepSaga.service.MailService;
+import com.prep_saga.PrepSaga.service.mail.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,14 +39,23 @@ public class AuthService {
         this.mailService = mailService;
     }
 
-    // Register User
-    public ResponseEntity<?> register(User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+    /**
+     * Register User
+     *
+     * @param registerRequest
+     * @return
+     */
+    public ResponseEntity<?> register(RegisterRequest registerRequest) {
+        if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
             return new ResponseEntity<>("User with this email already exists", HttpStatus.BAD_REQUEST);
         }
-
+        User user = new User();
         // Encode password and set status
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setFirstName(registerRequest.getFirstName());
+        user.setLastName(registerRequest.getLastName());
+        user.setRole(Role.USER);
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
 
@@ -53,18 +65,28 @@ public class AuthService {
         tokenRepository.save(verificationToken);
 
         // ✅ Send actual token, not full message
-        mailService.sendVerificationEmail(user.getEmail(), user.getEmail(), token); // second param is username or email
+        mailService.sendVerificationEmail(user.getEmail(), user.getUserName(), token); // second param is username or email
 
-        return new ResponseEntity<>("User registered successfully. Please check your email to verify.", HttpStatus.CREATED);
+        return new ResponseEntity<>("User registered successfully. Please check your email to verify.", HttpStatus.OK);
     }
 
+    /**
+     * @param email
+     * @return
+     */
     public User addAdmin(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRole("ADMIN");
+        user.setRole(Role.ADMIN);
         return userRepository.save(user);
     }
 
-    // Authenticate User
+
+    /**
+     * Authenticate User
+     *
+     * @param loginRequest
+     * @return
+     */
     public ResponseEntity<?> login(User loginRequest) {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequest.getEmail()));
@@ -82,7 +104,10 @@ public class AuthService {
         return ResponseEntity.ok(response);
     }
 
-
+    /**
+     * @param token
+     * @return
+     */
     public ResponseEntity<String> verifyEmail(String token) {
         VerificationToken verificationToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid token"));

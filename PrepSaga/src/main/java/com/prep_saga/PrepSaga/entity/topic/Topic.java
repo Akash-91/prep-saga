@@ -19,4 +19,8 @@ public class Topic {
 
     @Column(columnDefinition = "TEXT")
     private String content; // Rich textual content
+
+    @Column(length = 500)
+    private String summary; // Short description for tile view
+
 }

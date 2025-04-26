@@ -1,6 +1,5 @@
 package com.prep_saga.PrepSaga.config;
 
-
 import com.prep_saga.PrepSaga.security.JwtAuthenticationFilter;
 import com.prep_saga.PrepSaga.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +17,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-
 @Configuration
 public class SecurityConfig {
 
@@ -30,24 +28,35 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for APIs (safe in JWT token-based auth)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Add CORS support
+        http
+                .csrf(csrf -> csrf.disable()) // Disable CSRF (safe if using JWT or token based auth)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/ping", "/swagger-ui/**", "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/v2/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**", "/ping",
+                                "/swagger-ui/**", "/swagger-ui.html",
+                                "/v3/api-docs/**", "/v2/api-docs/**",
+                                "/swagger-resources/**", "/webjars/**",
+                                "/oauth2/**", "/login/oauth2/**", "/oauth2/callback/**"
+                        ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
                         .requestMatchers("/api/topics/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login") // Custom login page if you have one
+                        .successHandler((request, response, authentication) -> {
+                            // ✅ Custom Redirect After Successful OAuth2 Login
+                            response.sendRedirect("http://localhost:3000/userDashboard");
+                        })
+                        .failureUrl("/login?error=true") // Optional: redirect on login failure
+                );
+
+        return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -61,13 +70,10 @@ public class SecurityConfig {
         return source;
     }
 
-
-    // Provide authentication manager bean
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {

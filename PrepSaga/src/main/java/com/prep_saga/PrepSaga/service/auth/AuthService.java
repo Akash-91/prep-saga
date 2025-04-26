@@ -99,7 +99,7 @@ public class AuthService {
             return new ResponseEntity<>("Please verify your email before logging in.", HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtTokenProvider.createToken(user.getEmail());
+        String token = jwtTokenProvider.createToken(user.getEmail(), user.getRole().name());
         LoginResponse response = new LoginResponse("Bearer " + token, user.getEmail(), user.getRole());
         return ResponseEntity.ok(response);
     }
